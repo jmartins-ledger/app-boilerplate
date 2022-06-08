@@ -125,6 +125,7 @@ jobs:
         with:
           name: apps
           path: elfs
+      - run: mv elfs/bin/* elfs/
       - name: Install dependencies
         run: |
           apt update && apt install -qy gcc netcat  # /!\ needed when installing pysha3
@@ -154,6 +155,7 @@ jobs:
         with:
           name: apps
           path: elfs
+      - run: mv elfs/bin/* elfs/
       - name: Install tests dependencies
         run: |
           sudo apt-get update && sudo apt-get install -y qemu-user-static
@@ -162,3 +164,26 @@ jobs:
         env:
           CTEST_OUTPUT_ON_FAILURE: 1
         run: pytest tests/speculos/
+
+  job_functional_test_3:
+    name: Functional tests with Ragger (compatible with Speculos & physical devices)
+    needs:
+      - nano_build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone
+        uses: actions/checkout@v2
+      - name: Download app binary
+        uses: actions/download-artifact@v2
+        with:
+          name: apps
+          path: elfs
+      - run: mv elfs/bin/* elfs/
+      - name: Install tests dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y qemu-user-static
+          pip install --extra-index-url https://test.pypi.org/simple/ -r tests/ragger/requirements.txt
+      - name: Run test
+        env:
+          CTEST_OUTPUT_ON_FAILURE: 1
+        run: pytest tests/ragger/
